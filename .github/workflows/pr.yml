@@ -1,0 +1,16 @@
+name: review
+on: [pull_request]
+jobs:
+  shellcheck:
+    name: runner / shellcheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: shellcheck
+        uses: reviewdog/action-shellcheck@v1
+        with:
+          github_token: ${{ secrets.TOKEN }}
+          reporter: github-pr-review
+          path: "."
+          exclude: "./.git/*"
+          check_all_files_with_shebangs: "true"
