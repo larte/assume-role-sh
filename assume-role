@@ -54,7 +54,7 @@ function build_command() {
 
     mfa_serial=$(aws configure get mfa_serial --profile "${rolename}")
     if [ -n  "$mfa_serial" ]; then
-        echo "MFA code: " >&2
+        echo -n "MFA code: " >&2
         read -r token
         command+=(--serial-number "${mfa_serial}" --token-code "${token}")
     fi
@@ -86,6 +86,10 @@ function export_credentials() {
 build_command "$1"
 read -r -a credentials <<< "$("${command[@]}")"
 shift
+
+if [ -z "$credentials" ]; then
+    err "Could not assume role!"
+fi
 
 if (( $# == 0 )); then
     print_credentials "${credentials[@]}"
