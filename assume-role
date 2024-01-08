@@ -18,6 +18,9 @@ function err() {
     exit 1
 }
 
+# use 1 hour duration by default
+ASSUME_DEFAULT_DURATION=3600
+
 function build_command() {
     local rolename
     local role_arn
@@ -43,12 +46,16 @@ function build_command() {
     command=(aws --profile "${source_profile}" sts assume-role --role-arn "${role_arn}")
 
 
+    duration_seconds=$(aws configure get role_session_name --profile "${rolename}" || AWS_DEFAULT_DURATION )
+    command+=(--duration-seconds "${duration_seconds}")
+
     role_session_name=$(aws configure get role_session_name --profile "${rolename}" || true )
     if [ -n  "$role_session_name" ]; then
         command+=(--role-session-name "${role_session_name}")
     else
         command+=(--role-session-name "${rolename}-session")
     fi
+
 
     mfa_serial=$(aws configure get mfa_serial --profile "${rolename}")
     if [ -n  "$mfa_serial" ]; then

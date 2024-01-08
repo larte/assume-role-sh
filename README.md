@@ -21,7 +21,9 @@ region=eu-central-1
 [profile production]
 role_arn=arn:aws:iam:123456:role/DeploymentRole
 source_profile=management
-mfa_serial=arn:aws:iam:633:mfa/jack
+mfa_serial=arn:aws:iam:633:mfa/jack   # optional
+duration_seconds=3600                 # optional
+external_id=abc123                    # optional
 ```
 
 `~/.aws/credentials`
