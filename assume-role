@@ -46,7 +46,12 @@ function build_command() {
     command=(aws --profile "${source_profile}" sts assume-role --role-arn "${role_arn}")
 
 
-    duration_seconds=$(aws configure get role_session_name --profile "${rolename}" || AWS_DEFAULT_DURATION )
+    duration_seconds=$(aws configure get role_session_name --profile "${rolename}" || true )
+    if [ -n  "$duration_seconds" ]; then
+        command+=(--duration-seconds "${duration_seconds}")
+    else
+        command+=(--role-session-name "${ASSUME_DEFAULT_DURATION}")
+    fi
     command+=(--duration-seconds "${duration_seconds}")
 
     role_session_name=$(aws configure get role_session_name --profile "${rolename}" || true )
