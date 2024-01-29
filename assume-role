@@ -12,6 +12,24 @@ set -o pipefail
 #                Print this help message
 #
 # EXAMPLES
+#
+# Having a cli config setup like describe in AWS CLI Userguide ( see README.md )
+#
+# - print temporary credentials:
+#
+# $ assume-role ROLENAME
+#   export AWS_ACCESS_KEY_ID="...."
+#   export AWS_SECRET_ACCESS_KEY="..."
+#   export AWS_SESSION_TOKEN="..."
+#
+# - export temporary role credentials into a shell session:
+#
+# $ eval $(assume-role ROLENAME)
+#
+# - execute a program or script with temporary role credentials
+#
+# $ assume-role ROLENAME /path/to/my-script arg1 --flag
+#
 
 function err() {
     echo "$@" >&2
@@ -83,18 +101,36 @@ function export_credentials() {
     export AWS_SESSION_TOKEN=${credentials[2]}
 }
 
+function get_credentials() {
+    local rolename
+    rolename=$1
+    build_command "$rolename"
+    credentials=()
+    read -r -a credentials <<< "$("${command[@]}")"
+}
+
+
+# main
+
+if (( $# == 0 )); then
+    echo "available roles in ~/.aws/config"
+    aws configure list-profiles
+    exit 1
+fi
+
 build_command "$1"
 read -r -a credentials <<< "$("${command[@]}")"
 shift
 
-if [ -z "$credentials" ]; then
+if [ ${#credentials[@]} -eq 0 ]; then
     err "Could not assume role!"
 fi
 
 if (( $# == 0 )); then
     print_credentials "${credentials[@]}"
     exit 0
-else
-    export_credentials "${credentials[@]}"
-    "$@"
 fi
+
+# export and execute rest
+export_credentials "${credentials[@]}"
+"$@"
